@@ -32,6 +32,7 @@ mongoose.connect(
 );
 
 app.use('/user', require('./routes/user.route'));
+app.use('/api', require('./routes/upload.route'));
 
 const PORT = process.env.PORT || 5000;
 
