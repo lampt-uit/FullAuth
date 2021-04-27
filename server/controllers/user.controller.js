@@ -75,27 +75,31 @@ const userController = {
 		}
 	},
 	login: async (req, res) => {
-		const { email, password } = req.body;
+		try {
+			const { email, password } = req.body;
 
-		const user = await Users.findOne({ email });
+			const user = await Users.findOne({ email });
 
-		if (!user)
-			return res.status(400).json({ message: 'This email does not exists!' });
+			if (!user)
+				return res.status(400).json({ message: 'This email does not exists!' });
 
-		const isMatch = await bcrypt.compare(password, user.password);
+			const isMatch = await bcrypt.compare(password, user.password);
 
-		if (!isMatch)
-			return res.status(400).json({ message: 'Password is incorrect!' });
+			if (!isMatch)
+				return res.status(400).json({ message: 'Password is incorrect!' });
 
-		const refresh_token = createRefreshToken({ id: user._id });
+			const refresh_token = createRefreshToken({ id: user._id });
 
-		res.cookie('refreshtoken', refresh_token, {
-			httpOnly: true,
-			path: '/user/refresh_token',
-			maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
-		});
+			res.cookie('refreshtoken', refresh_token, {
+				httpOnly: true,
+				path: '/user/refresh_token',
+				maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
+			});
 
-		res.json({ message: 'Login successful' });
+			res.json({ message: 'Login successful' });
+		} catch (error) {
+			return res.status(500).json({ msg: error.message });
+		}
 	},
 	getAccessToken: (req, res) => {
 		try {
