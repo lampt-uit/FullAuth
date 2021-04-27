@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
 
+import { dispatchLogin } from '../../redux/actions/auth.action';
 import {
 	showErrMsg,
 	showSuccessMsg
@@ -14,8 +16,10 @@ const initialState = {
 	success: ''
 };
 
-function Login() {
+function Register() {
 	const [user, setUser] = useState(initialState);
+	const dispatch = useDispatch();
+	const history = useHistory();
 	const { email, password, err, success } = user;
 
 	const handleChangeInput = (e) => {
@@ -30,6 +34,9 @@ function Login() {
 			const res = await axios.post('/user/login', { email, password });
 			setUser({ ...user, err: '', success: res.data.message });
 			localStorage.setItem('firstLogin', true);
+
+			dispatch(dispatchLogin());
+			history.push('/');
 		} catch (error) {
 			error.response.data.message &&
 				setUser({
@@ -75,8 +82,11 @@ function Login() {
 					<Link to='/forgot_password'>Forgot your password ?</Link>
 				</div>
 			</form>
+			<p>
+				New customer? <Link to='/register'>Register</Link>
+			</p>
 		</div>
 	);
 }
 
-export default Login;
+export default Register;
