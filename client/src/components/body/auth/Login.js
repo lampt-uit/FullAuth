@@ -9,6 +9,7 @@ import {
 	showSuccessMsg
 } from '../../utils/notification/Notification';
 import { GoogleLogin } from 'react-google-login';
+import FacebookLogin from 'react-facebook-login';
 
 const initialState = {
 	email: '',
@@ -70,6 +71,28 @@ function Register() {
 		}
 	};
 
+	const responseFacebook = async (response) => {
+		try {
+			const { accessToken, userID } = response;
+			const res = await axios.post('/user/facebook_login', {
+				accessToken,
+				userID
+			});
+			setUser({ ...user, err: '', success: res.data.message });
+
+			localStorage.setItem('firstLogin', true);
+			dispatch(dispatchLogin());
+			history.push('/');
+		} catch (error) {
+			error.response.data.message &&
+				setUser({
+					...user,
+					err: error.response.data.message,
+					success: ''
+				});
+		}
+	};
+
 	return (
 		<div className='login_page'>
 			<h2>Login</h2>
@@ -113,6 +136,12 @@ function Register() {
 					onSuccess={responseGoogle}
 					onFailure={responseGoogle}
 					cookiePolicy={'single_host_origin'}
+				/>
+				<FacebookLogin
+					appId='249328646929132'
+					autoLoad={false}
+					fields='name,email,picture'
+					callback={responseFacebook}
 				/>
 			</div>
 			<p>
