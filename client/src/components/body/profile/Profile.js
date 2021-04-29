@@ -8,6 +8,10 @@ import {
 	showSuccessMsg
 } from '../../utils/notification/Notification';
 import { isLength, isMatch } from '../../utils/validation/Validation';
+import {
+	fetchAllUsers,
+	dispatchGetAllUsers
+} from '../../redux/actions/user.action';
 
 const initialState = {
 	name: '',
@@ -20,6 +24,8 @@ const initialState = {
 function Profile() {
 	const auth = useSelector((state) => state.auth);
 	const token = useSelector((state) => state.token);
+	const users = useSelector((state) => state.users);
+	const dispatch = useDispatch();
 
 	const { user, isAdmin } = auth;
 	const [data, setData] = useState(initialState);
@@ -28,6 +34,14 @@ function Profile() {
 	const [callback, setCallback] = useState(false);
 
 	const { name, password, cf_password, err, success } = data;
+
+	useEffect(() => {
+		if (isAdmin) {
+			return fetchAllUsers(token).then((res) => {
+				dispatch(dispatchGetAllUsers(res));
+			});
+		}
+	}, [token, isAdmin, dispatch, callback]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -113,6 +127,25 @@ function Profile() {
 	const handleUpdate = () => {
 		if (name || avatar) updateInfor();
 		if (password) updatePassword();
+	};
+
+	const handleDelete = async (id) => {
+		try {
+			//If user login !== user is deleted => accept
+			if (user._id !== id) {
+				if (window.confirm('Are you sure you want to delete this account ? ')) {
+					setLoading(true);
+					await axios.delete(`/user/delete/${id}`, {
+						headers: { Authorization: token }
+					});
+
+					setLoading(false);
+					setCallback(!callback);
+				}
+			}
+		} catch (error) {
+			setData({ ...data, err: error.response.data.msg, success: '' });
+		}
 	};
 	return (
 		<>
@@ -207,11 +240,30 @@ function Profile() {
 								</tr>
 							</thead>
 							<tbody>
-								<td>ID</td>
-								<td>Name</td>
-								<td>Email</td>
-								<td>Admin</td>
-								<td>Action</td>
+								{users.map((user) => (
+									<tr key={user._id}>
+										<td>{user._id}</td>
+										<td>{user.name}</td>
+										<td>{user.email}</td>
+										<td>
+											{user.role === 1 ? (
+												<i className='fas fa-check' title='Admin'></i>
+											) : (
+												<i className='fas fa-times' title='User'></i>
+											)}
+										</td>
+										<td>
+											<Link to={`edit_user/${user._id}`}>
+												<i className='fas fa-edit' title='Edit'></i>
+											</Link>
+											<i
+												className='fas fa-trash-alt'
+												title='Delete'
+												onClick={() => handleDelete(user._id)}
+											></i>
+										</td>
+									</tr>
+								))}
 							</tbody>
 						</table>
 					</div>

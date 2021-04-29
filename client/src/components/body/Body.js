@@ -9,10 +9,11 @@ import NotFound from '../utils/notfound/NotFound';
 import ForgotPassword from './auth/ForgotPassword';
 import ResetPassword from './auth/ResetPassword';
 import Profile from './profile/Profile';
+import EditUser from './profile/EditUser';
 
 function Body() {
 	const auth = useSelector((state) => state.auth);
-	const { isLogged } = auth;
+	const { isLogged, isAdmin } = auth;
 	return (
 		<section>
 			<Switch>
@@ -47,6 +48,12 @@ function Body() {
 				<Route
 					path='/profile'
 					component={isLogged ? Profile : NotFound}
+					exact
+				></Route>
+
+				<Route
+					path='/edit_user/:id'
+					component={isAdmin ? EditUser : NotFound}
 					exact
 				></Route>
 			</Switch>
