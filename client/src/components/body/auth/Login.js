@@ -8,6 +8,7 @@ import {
 	showErrMsg,
 	showSuccessMsg
 } from '../../utils/notification/Notification';
+import { GoogleLogin } from 'react-google-login';
 
 const initialState = {
 	email: '',
@@ -35,6 +36,28 @@ function Register() {
 			setUser({ ...user, err: '', success: res.data.message });
 			localStorage.setItem('firstLogin', true);
 
+			dispatch(dispatchLogin());
+			history.push('/');
+		} catch (error) {
+			error.response.data.message &&
+				setUser({
+					...user,
+					err: error.response.data.message,
+					success: ''
+				});
+		}
+	};
+
+	const responseGoogle = async (response) => {
+		// console.log(response);
+
+		try {
+			const res = await axios.post('/user/google_login', {
+				tokenId: response.tokenId
+			});
+			setUser({ ...user, err: '', success: res.data.message });
+
+			localStorage.setItem('firstLogin', true);
 			dispatch(dispatchLogin());
 			history.push('/');
 		} catch (error) {
@@ -82,6 +105,16 @@ function Register() {
 					<Link to='/forgot_password'>Forgot your password ?</Link>
 				</div>
 			</form>
+			<div className='hr'>Or Login With</div>
+			<div className='social'>
+				<GoogleLogin
+					clientId='46740943345-k6f2uf6qb2fackl1t1f3ca2onl7omtev.apps.googleusercontent.com'
+					buttonText='Login with Google'
+					onSuccess={responseGoogle}
+					onFailure={responseGoogle}
+					cookiePolicy={'single_host_origin'}
+				/>
+			</div>
 			<p>
 				New customer? <Link to='/register'>Register</Link>
 			</p>
